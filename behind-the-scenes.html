@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keynote Behind the Scenes</title>
+<meta name="description" content="One keynote, built three ways: offline on a local AI server, with a cloud AI, and offline plus cloud improvement – runtime, tokens, cost, pros and cons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Source+Serif+4:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+  section { margin: 2.6rem 0; }
+  .routes .card h3 { margin-bottom: .2rem; }
+  .routes .tag { font-size: .8rem; color: var(--muted); }
+  .chart { position: relative; }
+  .chart .bar-row { display: grid; grid-template-columns: 11rem 1fr; align-items: center; gap: .6rem; margin: .45rem 0; }
+  .chart .lbl { font-size: .9rem; }
+  .chart .track { position: relative; height: 26px; }
+  .chart .fill { height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .chart .val { position: absolute; top: 50%; transform: translateY(-50%); font-size: .85rem; font-variant-numeric: tabular-nums; color: var(--fg); white-space: nowrap; }
+  .chart .bar-row:hover .fill, .chart .bar-row:focus .fill { filter: brightness(1.15); }
+  .chart .bar-row:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-radius: 8px; padding: .4rem .6rem; font-size: .82rem; display: none; z-index: 3; max-width: 260px; }
+  @media (max-width: 600px) { .chart .bar-row { grid-template-columns: 1fr; gap: .1rem; } }
+  td ul { margin: 0; padding-left: 1.1rem; } td li { margin: .15rem 0; }
+  header .row a { font-size: .95rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p><a href="index.html">← Back to the keynote</a></p>
+    <div class="kicker">Behind the scenes</div>
+    <h1>One keynote, built three ways</h1>
+    <p class="lead">Same brief, same fact sheet, same open-source Teaching Agent – only the AI engine changed. Here is what each route cost and what it gave.</p>
+  </header>
+
+  <section class="routes">
+    <div class="grid g3">
+      <div class="card">
+        <div class="kicker">V1 · Offline</div>
+        <h3>Local open model</h3>
+        <p class="tag">qwen3.8:27b on the university AI server (GX10)</p>
+        <p>46 min, no cloud tokens. Data stays on campus.</p>
+        <a href="https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V1_Offline_GX10/README.md" target="_blank" rel="noopener">Open V1 in LiaScript ↗</a>
+      </div>
+      <div class="card">
+        <div class="kicker">V2 · Cloud only</div>
+        <h3>Commercial cloud model</h3>
+        <p class="tag">Claude Opus 5.5 builds the whole keynote</p>
+        <p>4 min, everything in the cloud.</p>
+        <a href="https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V2_Claude/README.md" target="_blank" rel="noopener">Open V2 in LiaScript ↗</a>
+      </div>
+      <div class="card">
+        <div class="kicker">V3 · Offline + cloud</div>
+        <h3>Draft offline, polish online</h3>
+        <p class="tag">V1 draft, then one Claude editing session</p>
+        <p>46 min offline + 3 min cloud. Basis of the <a href="index.html">web keynote</a>.</p>
+        <a href="https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V3_GX10_Claude_improved/README.md" target="_blank" rel="noopener">Open V3 in LiaScript ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How an agent builds a keynote</h2>
+    <p>The language model never touches the computer. It writes requests as text – <code>read_file</code>, <code>write_file</code> – and the agent program checks them against the rules and runs them. The offline run took 23 such steps:</p>
+    <pre>[1]    35s  read_file journal.md; read_file inputs/rahmen.md; read_file inputs/quelle_keynote.md
+[2]    60s  read_file specs/tasks/build-session.md
+ …
+[7]   689s  write_file materials/01-giz-keynote/README.md      ← first full draft
+[9]  1545s  write_file materials/01-giz-keynote/README.md      ← revision after self-review
+ …
+[20] 2611s  write_file agent_report.md
+[23] 2812s  All self-checks pass …</pre>
+    <p class="small" style="margin-top:.5rem">Full log: <a href="_gx10/giz-keynote/results/T1/run.log">run.log</a> · task: <a href="_gx10/giz-keynote/tasks/T1.md">T1.md</a> · agent report: <a href="_gx10/giz-keynote/results/T1/agent_report.md">agent_report.md</a></p>
+  </section>
+
+  <section>
+    <h2>Cloud effort</h2>
+    <p class="muted">Claude input-token equivalents (fresh input and cache write × 1, cache read × 0.1, output × 5). Lower is cheaper.</p>
+    <div class="chart card" id="c1"></div>
+    <h2 style="margin-top:2rem">Runtime</h2>
+    <p class="muted">Minutes from start to finished deck (without human review).</p>
+    <div class="chart card" id="c2"></div>
+  </section>
+
+  <section>
+    <h2>Measured numbers</h2>
+    <div class="table-wrap card">
+      <table>
+        <tr><th></th><th>V1 Offline (GX10)</th><th>V2 Cloud only</th><th>V3 Offline + improve</th></tr>
+        <tr><td>Model</td><td>qwen3.8:27b, local</td><td>Claude Opus 5.5</td><td>qwen3.8:27b → Claude Opus 5.5</td></tr>
+        <tr><td>Runtime</td><td>46 min (23 steps)</td><td>4.2 min (38 turns)</td><td>46 min + 2.9 min (12 turns)</td></tr>
+        <tr><td>Local model tokens (in / out)</td><td>947 k / 35 k</td><td>–</td><td>947 k / 35 k</td></tr>
+        <tr><td>Claude fresh input + cache write</td><td>0</td><td>162 k</td><td>41 k</td></tr>
+        <tr><td>Claude cache reads</td><td>0</td><td>1.19 M</td><td>0.32 M</td></tr>
+        <tr><td>Claude output (incl. thinking)</td><td>0</td><td>35.8 k (13.9 k)</td><td>18.5 k (6.9 k)</td></tr>
+        <tr><td><b>Claude input-token equivalents</b></td><td><b>0</b></td><td><b>≈ 459 k</b></td><td><b>≈ 165 k (–64 %)</b></td></tr>
+        <tr><td>Claude list price</td><td>0 €</td><td>≈ 2.25 USD</td><td>≈ 0.76 USD</td></tr>
+        <tr><td>Syntax errors (lint)</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>Slides</td><td>17</td><td>18</td><td>18</td></tr>
+      </table>
+    </div>
+    <p class="small" style="margin-top:.5rem">Not included and the same for all three: preparing brief and fact sheet (≈ 150 k equivalents, estimated) and the human review before the talk.</p>
+  </section>
+
+  <section>
+    <h2>Pros and cons</h2>
+    <div class="table-wrap card">
+      <table>
+        <tr><th></th><th>Pros</th><th>Cons</th></tr>
+        <tr><td><b>V1 Offline</b></td>
+          <td><ul><li>no cloud cost</li><li>data never leaves the university</li><li>clean syntax</li><li>follows brief and fact sheet faithfully</li></ul></td>
+          <td><ul><li>slow (46 min)</li><li>copies the fact sheet almost word for word</li><li>jargon kept, crowded slides</li><li>its own self-check said “all fine” – and gave a wrong date</li></ul></td></tr>
+        <tr><td><b>V2 Cloud only</b></td>
+          <td><ul><li>best keynote straight away</li><li>plain words, clear tables</li><li>self-review caught jargon</li><li>ready in 4 min</li></ul></td>
+          <td><ul><li>highest cloud cost</li><li>all material goes to a cloud provider</li><li>still needs the speaker's review</li></ul></td></tr>
+        <tr><td><b>V3 Offline + improve</b></td>
+          <td><ul><li>quality on the level of V2, with a thread of people (Amina, Grace, Joseph, Sara)</li><li>≈ 64 % fewer cloud tokens than V2</li><li>offline part can run overnight</li></ul></td>
+          <td><ul><li>two steps, ≈ 50 min in total</li><li>only about 55 % of the offline draft survived</li><li>the draft still goes to the cloud</li></ul></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>What this means for GIZ projects</h2>
+    <div class="grid g2">
+      <div class="card"><b>Local open models are good enough for first drafts</b><br><span class="muted">– and keep sensitive data in the country.</span></div>
+      <div class="card"><b>Quality comes from the improvement step</b><br><span class="muted">by a stronger model <i>and</i> by people.</span></div>
+      <div class="card"><b>Mix and match</b><br><span class="muted">offline for volume and privacy, cloud for polish – at about a third of the cloud cost.</span></div>
+      <div class="card"><b>Never trust the AI's own quality report</b><br><span class="muted">check it yourself.</span></div>
+    </div>
+    <blockquote>The local model does the heavy, routine part. A stronger system – and finally a human – checks, shortens and makes it human.</blockquote>
+  </section>
+
+  <p class="small">Source files, logs and all three versions: <a href="https://github.com/OVGU-VET-TechEd/GIZ_impulse_lecture">github.com/OVGU-VET-TechEd/GIZ_impulse_lecture</a></p>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+(() => {
+  try { const t = localStorage.getItem('giz-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+  const tip = document.getElementById('tip');
+  function chart(el, rows, fmt, unit) {
+    const max = Math.max(...rows.map(r => r.v));
+    el.innerHTML = rows.map((r, i) => `<div class="bar-row" tabindex="0" data-i="${i}" aria-label="${r.k}: ${fmt(r.v)} ${unit}">
+      <div class="lbl">${r.k}</div>
+      <div class="track"><div class="fill" style="width:calc(${(r.v / max) * 100}% * .82)"></div><span class="val" style="left:calc(${(r.v / max) * 100}% * .82 + 8px)">${fmt(r.v)}</span></div></div>`).join('');
+    el.querySelectorAll('.bar-row').forEach(row => {
+      const r = rows[+row.dataset.i];
+      const show = e => { tip.innerHTML = `<b>${r.k}</b><br>${fmt(r.v)} ${unit}${r.note ? `<br><span class="muted">${r.note}</span>` : ''}`; tip.style.display = 'block'; const b = (e.clientX ? { x: e.clientX, y: e.clientY } : (() => { const q = row.getBoundingClientRect(); return { x: q.left + 40, y: q.bottom }; })()); tip.style.left = Math.min(b.x + 12, innerWidth - 270) + scrollX + 'px'; tip.style.top = b.y + 14 + scrollY + 'px'; };
+      row.addEventListener('mousemove', show); row.addEventListener('focus', show);
+      row.addEventListener('mouseleave', () => tip.style.display = 'none'); row.addEventListener('blur', () => tip.style.display = 'none');
+    });
+  }
+  chart(document.getElementById('c1'), [
+    { k: 'V1 Offline', v: 0, note: '947 k tokens on the local server – none in the cloud' },
+    { k: 'V2 Cloud only', v: 459, note: '≈ 2.25 USD list price' },
+    { k: 'V3 Offline + improve', v: 165, note: '≈ 0.76 USD · –64 % vs V2' }
+  ], v => v ? `≈ ${v} k` : '0', 'input-token equivalents');
+  chart(document.getElementById('c2'), [
+    { k: 'V1 Offline', v: 46, note: '23 agent steps on the GX10' },
+    { k: 'V2 Cloud only', v: 4.2, note: '38 turns' },
+    { k: 'V3 Offline + improve', v: 48.9, note: '46 min offline + 2.9 min cloud' }
+  ], v => `${v} min`, '');
+})();
+</script>
+</body>
+</html>
