@@ -9,7 +9,8 @@ Impulse keynote (12–15 min, virtual) for the GIZ TVET and Labour Market commun
 | --- | --- |
 | **Interactive web presentation** (recommended) | **https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/** |
 | Behind the scenes: one keynote built three ways | https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/behind-the-scenes.html |
-| LiaScript – V3 (offline draft + cloud polish, basis of the web deck) | [open in LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V3_GX10_Claude_improved/README.md) |
+| **LiaScript version** (V3 + interlude “A new way to talk to computers”) | **https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/liascript.html** · [direct LiaScript link](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/keynote.md) |
+| LiaScript – V3 as generated (offline draft + cloud polish) | [open in LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V3_GX10_Claude_improved/README.md) |
 | LiaScript – V2 (cloud only) | [open in LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V2_Claude/README.md) |
 | LiaScript – V1 (offline only, local GX10 server) | [open in LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V1_Offline_GX10/README.md) |
 
@@ -37,6 +38,7 @@ All interactive elements run in the browser; no data is sent anywhere and no AI 
 | Path | Content |
 | --- | --- |
 | `index.html`, `assets/` | Interactive web presentation (GitHub Pages) |
+| `keynote.md`, `liascript.html` | Final LiaScript keynote (V3 + interlude, quiz on agent permissions) and the Pages link that opens it in LiaScript |
 | `behind-the-scenes.html` | Comparison of the three production routes: runtime, tokens, cost, pros and cons |
 | `V1_Offline_GX10/README.md` | LiaScript keynote drafted fully offline by the open-source Teaching Agent with a local open model (qwen3.8:27b on a GX10 server) |
 | `V2_Claude/README.md`, `V2_Claude/_run/` | Same brief, built with a cloud model (Claude Opus 5.5) – plus journal and agent report |
