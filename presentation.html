@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI in TVET Keynote</title>
+<meta name="description" content="Interactive keynote: AI in TVET and Employment Promotion – applying AI sensibly. Hannes Tegelbeckers, Otto von Guericke University Magdeburg.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Source+Serif+4:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { overflow: hidden; }
+  .deck { position: fixed; inset: 0 0 52px 0; }
+  .slide { position: absolute; inset: 0; display: none; overflow-y: auto; padding: clamp(20px, 4vw, 56px) 16px 40px; }
+  .slide.active { display: block; animation: in .35s ease; }
+  @keyframes in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .inner { min-width: 0; overflow-wrap: break-word; max-width: 1120px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+  .slide.section .inner { justify-content: center; }
+  .slide.section h1 { font-size: clamp(2rem, 5.5vw, 3.8rem); max-width: 18ch; }
+  .f { opacity: 0; transform: translateY(6px); transition: opacity .35s, transform .35s; }
+  .f.on { opacity: 1; transform: none; }
+  .print-all .f, .no-frag .f { opacity: 1; transform: none; }
+  ul.big { font-size: 1.2rem; padding-left: 1.2rem; } ul.big li { margin: .3rem 0; }
+
+  /* bottom bar */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; height: 52px; display: flex; align-items: center; gap: .5rem; padding: 0 12px; background: var(--surface); border-top: 1px solid var(--line); z-index: 5; }
+  .bar button { padding: .35rem .7rem; font-size: .85rem; }
+  .bar .count { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .85rem; min-width: 4.5em; text-align: center; }
+  .bar .title { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted); font-size: .85rem; }
+  .progress { position: fixed; left: 0; top: 0; height: 4px; background: var(--accent); z-index: 6; transition: width .3s; }
+  @media (max-width: 600px) { .bar .title, .bar .hide-s { display: none; } }
+
+  /* notes */
+  .notes { display: none; }
+  #notesPanel { position: fixed; left: 0; right: 0; bottom: 52px; max-height: 38vh; overflow-y: auto; background: var(--surface-2); border-top: 2px solid var(--accent); padding: 14px 16px; font-size: 1rem; z-index: 4; display: none; }
+  #notesPanel.open { display: block; }
+  #notesPanel .lbl { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); font-weight: 700; }
+
+  /* title slide */
+  .title-slide h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); max-width: 16ch; }
+  .title-slide .who { margin-top: 2rem; }
+
+  /* polls */
+  .poll { display: grid; gap: .6rem; max-width: 640px; }
+  .poll button { text-align: left; font-size: 1.1rem; padding: .8rem 1rem; display: flex; gap: .8rem; align-items: center; }
+  .poll .n { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--accent-soft); font-weight: 700; flex: none; }
+
+  /* agent loop diagram */
+  .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; align-items: stretch; }
+  .node { border: 2px solid var(--line); border-radius: 12px; padding: .7rem; background: var(--surface); text-align: center; transition: border-color .25s, background .25s; }
+  .node .ic { font-size: 1.7rem; }
+  .node b { display: block; font-size: .95rem; }
+  .node span { font-size: .8rem; color: var(--muted); }
+  .node.hot { border-color: var(--accent); background: var(--accent-soft); }
+  .node.stop { border-color: var(--bad); }
+  @media (max-width: 760px) { .loop { grid-template-columns: repeat(2, 1fr); } }
+  .log { min-height: 7.5rem; }
+  .log .who { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+
+  /* data path */
+  .path { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .path .stop { flex: 1 1 140px; }
+  .arrow { color: var(--muted); font-size: 1.4rem; }
+  mark { background: var(--warm-soft); color: inherit; border-radius: 4px; padding: 0 .15em; }
+
+  /* dots */
+  .dots { display: grid; grid-template-columns: repeat(20, 1fr); gap: 5px; max-width: 560px; }
+  .dot { aspect-ratio: 1; border-radius: 50%; background: var(--accent); transition: background .3s, opacity .3s; }
+  .dot.inf { background: var(--warm); }
+  .dots.adsview .dot.inf { opacity: .12; }
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .9rem; margin: .5rem 0; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: .35rem; vertical-align: -1px; }
+
+  /* sorter */
+  .task { display: flex; justify-content: space-between; gap: .6rem; align-items: center; padding: .55rem .2rem; border-bottom: 1px solid var(--line); }
+  .task button { min-width: 9.5em; font-size: .85rem; }
+  .task .why { display: none; font-size: .85rem; color: var(--muted); }
+  .reveal .task .why { display: block; }
+
+  /* chat */
+  .chat { display: flex; flex-direction: column; gap: .5rem; max-height: 46vh; overflow-y: auto; padding: .4rem; }
+  .msg { max-width: 85%; padding: .6rem .85rem; border-radius: 14px; font-size: .97rem; }
+  .msg.me { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  :root[data-theme="dark"] .msg.me { color: #0d1211; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .msg.me { color: #0d1211; } }
+  .msg.ai { align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
+
+  .links a.card { display: block; text-decoration: none; color: var(--fg); }
+  .links a.card:hover { border-color: var(--accent); }
+  .links .card b { color: var(--accent); }
+  .tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .8rem; }
+  svg text { fill: var(--muted); font-family: var(--font); }
+  #ooSvg text { font-size: 13px; }
+  #ooSvg text.t { font-size: 16px; font-weight: 700; fill: var(--fg); }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<main class="deck" id="deck">
+
+<!-- ============ TITLE ============ -->
+<section class="slide title-slide" data-title="Title">
+  <div class="inner">
+    <div class="kicker">Impulse keynote · GIZ TVET &amp; Labour Market community</div>
+    <h1>AI in TVET and Employment Promotion</h1>
+    <p class="lead">Applying AI sensibly – for people, data and learning</p>
+    <div class="who">
+      <b>Hannes Tegelbeckers</b><br>
+      <span class="muted">Otto von Guericke University Magdeburg · Engineering pedagogy and technical education</span>
+    </div>
+    <p class="small" style="margin-top:2rem">Navigate with ← → or the buttons below · <b>N</b> speaker notes · <b>F</b> full screen · <a href="behind-the-scenes.html">How this keynote was built with AI →</a> · <a href="index.html">Overview &amp; LiaScript versions</a></p>
+  </div>
+  <aside class="notes">Good morning, everyone, and welcome. I am Hannes Tegelbeckers from Otto von Guericke University Magdeburg, where I work on how people learn technical work. In the next fifteen minutes I want to share a practical view: what should we, the TVET and labour market community, do with AI – and what can we leave to others?</aside>
+</section>
+
+<!-- ============ SCENE ============ -->
+<section class="slide section" data-title="Setting the scene">
+  <div class="inner">
+    <div class="kicker">Setting the scene · ~2 min</div>
+    <h1>AI is already here. The question is how we use it.</h1>
+  </div>
+  <aside class="notes">Let us start with something we all share. AI is already part of our working and learning lives. For us, the question is not how to build AI – it is how to use it well for real problems.</aside>
+</section>
+
+<section class="slide" data-title="AI arrives quietly">
+  <div class="inner">
+    <h2>AI arrives quietly</h2>
+    <div class="grid g2">
+      <ul class="big f" data-f="1">
+        <li>Spell-check and translation on your phone</li>
+        <li>Voice messages turned into text</li>
+        <li>Chatbots answering customer questions</li>
+        <li>Route planning for delivery drivers</li>
+        <li>CVs sorted by recruitment platforms</li>
+      </ul>
+      <div class="card f" data-f="2">
+        <p><b>AI, in plain words:</b> software that has learned patterns from many examples – and uses them to suggest, predict, sort or write.</p>
+        <p class="bad" style="margin:0"><b>It does not understand like a person. It can be confidently wrong.</b></p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Think about your week so far. Most of you have used AI already – probably without calling it AI. [Click] Imagine Amina, a young job-seeker. Her phone corrects her spelling and turns her voice messages into text. And when she applies online, a platform may sort her CV before any person reads it. [Click] That is the definition I will use today. And please keep the second line in mind: AI can sound very sure and still be wrong.</aside>
+</section>
+
+<section class="slide" data-title="Poll: where have you met AI?">
+  <div class="inner">
+    <div class="kicker">Quick poll · type the number in the chat</div>
+    <h2>Where have you met AI this week?</h2>
+    <div class="poll" data-poll="p1">
+      <button><span class="n">1</span>In my messages and email</button>
+      <button><span class="n">2</span>At work or in my project</button>
+      <button><span class="n">3</span>In learning or teaching</button>
+      <button><span class="n">4</span>Honestly, I don't know</button>
+    </div>
+  </div>
+  <aside class="notes">Before we go on, a quick poll – no right answer, just curiosity. Where have you met AI this week? Please type the number in the chat. If you picked "I don't know", you are in good company – that is exactly how quietly AI arrives.</aside>
+</section>
+
+<section class="slide" data-title="Apply, don't build">
+  <div class="inner">
+    <h2>Apply, don't build</h2>
+    <p class="lead">Building big AI models costs huge amounts of money, data and energy – and only a handful of companies do it.</p>
+    <div class="card f" data-f="1" style="max-width:640px">
+      Our strength is <b>applying</b> existing tools to real problems:
+      <div class="row" style="margin-top:.5rem"><span class="pill">matching people to jobs</span><span class="pill">making training more relevant</span><span class="pill">supporting teachers</span></div>
+    </div>
+    <blockquote class="f" data-f="2">We do not need to build the engine – we need to train good drivers and build good roads.</blockquote>
+  </div>
+  <aside class="notes">Here is the frame for the whole talk. Building large AI models from scratch is extremely expensive and is done by a handful of companies. That is not our job – and that is good news. [Click] Our strength lies somewhere else: using tools that already exist, for problems we know well. [Click] The engine already exists. Our work is the drivers – skilled people – and the roads – good data, good institutions, good training.</aside>
+</section>
+
+<!-- ============ NEW: TALKING TO COMPUTERS ============ -->
+<section class="slide section" data-title="A new way to talk to computers">
+  <div class="inner">
+    <div class="kicker">Interlude · ~2 min</div>
+    <h1>A new way to talk to computers</h1>
+    <p class="lead">From clicking, to coding, to simply saying what you need.</p>
+  </div>
+  <aside class="notes">Before the three pillars, one short interlude. Something fundamental has changed in how people work with computers – and it matters a lot for TVET.</aside>
+</section>
+
+<section class="slide" data-title="Click, code, prompt">
+  <div class="inner">
+    <h2>Click → Code → Prompt</h2>
+    <p class="muted">Same task: <i>“Which apprentices missed more than 3 days this month?”</i></p>
+    <div class="tabs" role="tablist" id="ccpTabs">
+      <button aria-pressed="true" data-k="click">🖱️ Click</button>
+      <button aria-pressed="false" data-k="code">⌨️ Code</button>
+      <button aria-pressed="false" data-k="prompt">💬 Prompt</button>
+    </div>
+    <div class="grid g2">
+      <div class="card" id="ccpBox" style="min-height:11rem"></div>
+      <div class="card f" data-f="1">
+        <h3>Why this is empowering</h3>
+        <p>Plain language becomes the interface. A trainer, a technician or a labour-market analyst can now <b>describe</b> what they need – without being a programmer.</p>
+        <p style="margin:0" class="muted">But: you still have to <b>know your trade</b> to judge whether the answer is right.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Look at one everyday task in three ways. With clicks, you need to know where every menu is. With code, you need to learn a programming language. With a prompt, you just say what you need – in your own words, maybe even in your own language. [Click] That is empowering: the barrier to using a computer drops dramatically. But the knowledge of the trade becomes more important, not less – because someone has to judge whether the answer is right.</aside>
+</section>
+
+<section class="slide" data-title="Offline AI vs online AI">
+  <div class="inner">
+    <h2>Offline AI or online AI – where does your data go?</h2>
+    <div class="tabs" id="ooTabs">
+      <button aria-pressed="true" data-k="off">🏫 Offline – local server</button>
+      <button aria-pressed="false" data-k="on">☁️ Online – cloud service</button>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 760 150" width="100%" role="img" aria-label="Data path diagram" id="ooSvg">
+        <rect x="10" y="40" width="150" height="70" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/>
+        <text x="85" y="72" text-anchor="middle" class="t">Your laptop</text>
+        <text x="85" y="92" text-anchor="middle">prompt + data</text>
+        <rect id="ooBorder" x="0" y="20" width="420" height="110" rx="16" fill="none" stroke="var(--accent)" stroke-dasharray="6 6"/>
+        <text x="210" y="15" text-anchor="middle" id="ooBorderLbl" style="font-size:13px">your institution / your country</text>
+        <rect id="ooLocal" x="250" y="40" width="160" height="70" rx="12" fill="var(--surface-2)" stroke="var(--line)"/>
+        <text x="330" y="72" text-anchor="middle" class="t">Local AI server</text>
+        <text x="330" y="92" text-anchor="middle">open model, e.g. GX10</text>
+        <rect id="ooCloud" x="590" y="40" width="160" height="70" rx="12" fill="var(--surface-2)" stroke="var(--line)"/>
+        <text x="670" y="72" text-anchor="middle" class="t">Cloud data centre</text>
+        <text x="670" y="92" text-anchor="middle">abroad, commercial</text>
+        <path id="ooPath" d="M160 75 L250 75" stroke="var(--accent)" stroke-width="3" fill="none" stroke-dasharray="8 6"><animate attributeName="stroke-dashoffset" from="28" to="0" dur="1s" repeatCount="indefinite"/></path>
+      </svg>
+      <div class="grid g3" id="ooFacts" style="margin-top:.6rem"></div>
+    </div>
+    <p class="small f" data-f="1">Measured on this very keynote: offline draft 46 min · cloud draft 4 min · offline draft + cloud polish ≈ 64 % fewer cloud tokens. <a href="behind-the-scenes.html">See the numbers →</a></p>
+  </div>
+  <aside class="notes">Here is a choice every GIZ project will face. Offline AI means an open model running on a server you own – at a university, a ministry, a training centre. The data never leaves the building. Online AI means a commercial cloud service – usually stronger and faster, but your data travels to a data centre abroad. [Click] I tested both on this very keynote. The local server needed 46 minutes for a first draft; the cloud needed four. The best value came from mixing: draft offline, polish online. The details are on the "behind the scenes" page.</aside>
+</section>
+
+<section class="slide" data-title="AI does not touch the computer">
+  <div class="inner">
+    <h2>The AI never touches the computer</h2>
+    <p class="muted" style="margin-top:-.3rem">A language model only <b>writes text</b> – sometimes that text is code or a command. A program around it, with permissions <b>you</b> set, decides what is actually done.</p>
+    <div class="loop" id="loop">
+      <div class="node" data-n="0"><div class="ic">🧑‍🏫</div><b>Human</b><span>gives the task, sets the rules</span></div>
+      <div class="node" data-n="1"><div class="ic">🧠</div><b>Language model</b><span>only writes text / code</span></div>
+      <div class="node" data-n="2"><div class="ic">🛡️</div><b>Agent program</b><span>checks permissions, runs it</span></div>
+      <div class="node" data-n="3"><div class="ic">💻</div><b>Computer</b><span>files, code, internet</span></div>
+    </div>
+    <div class="card log" style="margin-top:.8rem" id="loopLog"></div>
+    <div class="row" style="margin-top:.6rem" id="loopBtns">
+      <button class="primary" id="loopNext">Next step ▶</button>
+      <button id="loopReset">Restart</button>
+      <span class="small">Steps 1–4 are taken from the real log of the offline run that drafted this keynote.</span>
+    </div>
+  </div>
+  <aside class="notes">This is the most important technical idea of the talk, and it is simple. The AI itself never touches a computer. A language model only produces text. When that text is a command – "read this file", "write that file" – a separate program, the agent, checks whether it is allowed and only then runs it on the computer. The result goes back to the model as new text. Let me click through how this keynote was drafted. [Click through] And notice the last step: when the model asks for something outside the rules, the program stops and asks a human. That is where control lives: in permissions, in sandboxes, in human approval – things we can teach, regulate and own.</aside>
+</section>
+
+<!-- ============ PILLAR 1 ============ -->
+<section class="slide section" data-title="Pillar 1 · Data">
+  <div class="inner">
+    <div class="kicker">Pillar 1 · Data for labour market analysis · ~3 min</div>
+    <h1>Where does our labour market data come from?</h1>
+  </div>
+  <aside class="notes">First pillar. If we want better information about jobs and skills, we have to start with a simple question: where does the data actually come from – and who is in it?</aside>
+</section>
+
+<section class="slide" data-title="From job ad to decision">
+  <div class="inner">
+    <h2>From job ad to decision</h2>
+    <div class="path">
+      <div class="card stop"><b>1 Collect</b><br><small>job ads, surveys, registers</small></div><span class="arrow">→</span>
+      <div class="card stop"><b>2 Clean &amp; link</b><br><small>remove duplicates, map to skills</small></div><span class="arrow">→</span>
+      <div class="card stop"><b>3 Analyse</b><br><small>trends, skill gaps</small></div><span class="arrow">→</span>
+      <div class="card stop"><b>4 Share &amp; use</b><br><small>guidance, curricula, policy</small></div>
+    </div>
+    <div class="card f" data-f="1" style="margin-top:1rem">
+      <div class="kicker">Try it · step 2 in miniature</div>
+      <textarea id="adText" rows="3" aria-label="Job advertisement">Solar technician wanted in Kisumu. You install and maintain PV systems, troubleshoot faults and explain the system to customers. Driving licence, smartphone use and good English and Swahili required. Safety first!</textarea>
+      <div class="row" style="margin:.5rem 0"><button class="primary" id="adBtn">Find the skills</button><span class="small">Simplified demo with a small keyword list. Real systems use language models and shared skill lists such as ESCO.</span></div>
+      <div id="adOut"></div>
+    </div>
+  </div>
+  <aside class="notes">Labour market information travels a path, from the first job ad to a decision in a ministry or a training centre. [Click] Here is step two in miniature: the computer reads a job ad and pulls out the skills. Edit the ad and try it yourself. A real example: the EU agency Cedefop does this for millions of online job ads; shared skill lists like ESCO make jobs and skills comparable. The big gain is freshness – what employers need now, not what the last census said.</aside>
+</section>
+
+<section class="slide" data-title="Whose data is it?">
+  <div class="inner">
+    <h2>Whose data is it?</h2>
+    <p class="lead">Job-portal data often sits with private platforms abroad.</p>
+    <div class="card f" data-f="1" style="max-width:720px"><b>Data sovereignty:</b> our partners keep access to their data – and own it.</div>
+    <div class="grid g3 f" data-f="2" style="margin-top:1rem">
+      <div class="card"><b>Consent</b><br><small>people agree – and data is used only for what they agreed to</small></div>
+      <div class="card"><b>Bias</b><br><small>a system that learned from past hiring can repeat past discrimination</small></div>
+      <div class="card"><b>EU AI Act (2024)</b><br><small>AI for hiring, access to training and assessing learners is <b>high-risk</b></small></div>
+    </div>
+    <p class="f" data-f="3" style="margin-top:1rem">One option: run open AI models on <b>local servers</b> – the data never leaves the country. <span class="muted">(Remember the offline/online switch.)</span></p>
+  </div>
+  <aside class="notes">Now a harder question: who owns all this data? [Click] Data sovereignty means ministries, public employment services and TVET authorities keep access to their data and own it. [Click] Job-seekers' data needs consent and protection; systems trained on past hiring can repeat old unfairness; the EU treats AI in hiring and education as high-risk – a useful reference for our partners. [Click] And there is a practical way to keep control: run openly available AI models on your own servers, as my university does.</aside>
+</section>
+
+<section class="slide" data-title="The informal sector">
+  <div class="inner">
+    <h2>The informal sector – the blind spot</h2>
+    <div class="grid g2">
+      <div>
+        <p>Imagine a plumber in Nairobi: skilled, busy, trusted by the neighbours. <b>No CV online. No LinkedIn profile.</b></p>
+        <div class="tabs" id="dotTabs">
+          <button aria-pressed="true" data-k="61">World ≈ 6 in 10</button>
+          <button aria-pressed="false" data-k="86">Africa ≈ 85 %</button>
+        </div>
+        <button id="dotAds" aria-pressed="false">👁️ Show what online job ads see</button>
+        <p class="small" style="margin-top:.6rem">Share of workers in informal employment. Source: ILO, <i>Women and Men in the Informal Economy</i> (2018) – check for the latest figures.</p>
+        <blockquote class="f" data-f="1">If it is not in the data, it is not in the decision.</blockquote>
+      </div>
+      <div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>formal</span><span><i style="background:var(--warm)"></i>informal</span></div>
+        <div class="dots" id="dots" role="img" aria-label="100 workers"></div>
+        <p class="small" id="dotCap" style="margin-top:.5rem"></p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Imagine a plumber in Nairobi. Skilled, always busy, trusted by the neighbourhood – but not on LinkedIn or any job portal. According to the ILO, about two billion people – roughly six in ten workers worldwide – work informally; in Africa it is around eighty-five percent. [Click "show what job ads see"] Online job ads show only the formal, urban, digital part. Ways to make these workers visible: short phone or SMS surveys, voice skill profiles in local languages, data from trade associations and informal apprenticeships, recognition of skills learned on the job. [Click] If it is not in the data, it is not in the decision.</aside>
+</section>
+
+<!-- ============ PILLAR 2 ============ -->
+<section class="slide section" data-title="Pillar 2 · Training for AI systems">
+  <div class="inner">
+    <div class="kicker">Pillar 2 · Training <i>for</i> AI-supported systems · ~4 min</div>
+    <h1>How should TVET prepare technicians for machines that contain AI?</h1>
+  </div>
+  <aside class="notes">Second pillar. More and more technical systems in our partner countries contain AI: sensors plus software that spot problems and predict failures. How does TVET prepare the people who run and repair them?</aside>
+</section>
+
+<section class="slide" data-title="Grace's work order">
+  <div class="inner">
+    <h2>The AI suggests. Grace decides.</h2>
+    <p class="muted" style="margin-top:-.3rem">Grace is a water technician. The leak-detection system sends her a work order. You are Grace – what do you do?</p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><b id="leakTitle"></b><span class="small" id="leakScore"></span></div>
+        <svg viewBox="0 0 400 150" width="100%" id="leakSvg" role="img" aria-label="Sensor readings over 24 hours"></svg>
+        <p id="leakAi" style="margin:.4rem 0"></p>
+        <p class="small" id="leakClue" style="margin:0"></p>
+      </div>
+      <div>
+        <div class="grid" style="gap:.5rem" id="leakBtns">
+          <button data-a="leak">🚧 Send the repair crew</button>
+          <button data-a="sensor">🔧 Check the sensor first</button>
+          <button data-a="normal">✅ Close the ticket – nothing wrong</button>
+        </div>
+        <div class="card" id="leakFb" style="margin-top:.7rem;display:none"></div>
+        <button id="leakNext" style="margin-top:.6rem;display:none" class="primary">Next case ▶</button>
+      </div>
+    </div>
+    <p class="small" style="margin-top:.8rem">Same pattern elsewhere: a solar inverter “underperforming”, a camera that flags “faulty parts” on a production line. Illustrative cases.</p>
+  </div>
+  <aside class="notes">Let us make it concrete. You are Grace, a water technician. Sensors in the pipes report something; the software suggests what it means. Only Grace can judge whether the alarm is real. Let us play two or three cases together. [Play] Notice: the AI was useful every time – but in some cases it was wrong, and the knowledge of the trade made the difference. The same pattern holds for solar inverters and quality cameras in production.</aside>
+</section>
+
+<section class="slide" data-title="What changes for skilled workers">
+  <div class="inner">
+    <h2>What changes for skilled workers</h2>
+    <div class="grid g2">
+      <div>
+        <p class="lead">Skilled workers now work <b>with</b> the system:</p>
+        <ul class="big">
+          <li>Read its suggestions: does this make sense?</li>
+          <li>Notice when it is wrong</li>
+          <li>Feed it good data, look after the sensors</li>
+          <li>Report problems to the right person</li>
+        </ul>
+      </div>
+      <div class="f" data-f="1">
+        <div class="table-wrap"><table>
+          <tr><th>Level</th><th>What it means</th></tr>
+          <tr><td><b>1 Use</b></td><td>operate AI-supported tools safely</td></tr>
+          <tr><td><b>2 Understand &amp; check</b></td><td>know what it can and cannot do, spot errors, protect data</td></tr>
+          <tr><td><b>3 Maintain &amp; adapt</b></td><td>keep sensors accurate, update data, find and fix faults</td></tr>
+        </table></div>
+        <p class="card f" data-f="2" style="margin-top:1rem">Built into each trade – water technician, electrician, mechatronics technician. <b>Not</b> a separate IT course.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">For Grace and her colleagues, the daily work changes: they work with the system. [Click] A simple model with three levels: use, understand and check, maintain and adapt. Every occupation needs its own mix. [Click] And these skills belong inside each occupation's training – not in a separate computer course. UNESCO's 2024 AI competency frameworks for students and teachers are a good reference. In practice: update occupational standards, train teachers and in-company trainers first, offer realistic equipment or simulations, and work with companies that already run such systems.</aside>
+</section>
+
+<section class="slide" data-title="Sort Grace's tasks">
+  <div class="inner">
+    <h2>Which tasks change? Sort Grace's week.</h2>
+    <p class="muted" style="margin-top:-.3rem">Click each task to cycle: <span class="pill">AI can do it</span> <span class="pill">AI helps</span> <span class="pill warm">people do it</span></p>
+    <div class="card" id="sorter"></div>
+    <div class="row" style="margin-top:.7rem">
+      <button class="primary" id="sortReveal">Compare with one view</button>
+      <a class="btn" href="https://job-futuromat.iab.de" target="_blank" rel="noopener">Try your own occupation: IAB Job-Futuromat ↗</a>
+    </div>
+    <p class="small" style="margin-top:.5rem">The Job-Futuromat (Institute for Employment Research, IAB) shows which tasks of an occupation could already be automated today – based on German occupations, in German.</p>
+  </div>
+  <aside class="notes">Jobs rarely disappear in one piece; tasks change. Let us sort a typical week for Grace. [Let the audience suggest] Notice that most tasks move to "AI helps" – very few to "AI does it alone". If you want to try this for your own occupation, the Job-Futuromat of the German Institute for Employment Research lets you type any occupation and see which tasks are technically automatable today.</aside>
+</section>
+
+<!-- ============ PILLAR 3 ============ -->
+<section class="slide section" data-title="Pillar 3 · Training with AI">
+  <div class="inner">
+    <div class="kicker">Pillar 3 · Training humans <i>with</i> AI · ~3 min</div>
+    <h1>How can AI make learning personal, self-paced and open?</h1>
+  </div>
+  <aside class="notes">Third pillar. Now we turn the question around. Not training for AI – but how AI can help us train people.</aside>
+</section>
+
+<section class="slide" data-title="Joseph's AI tutor">
+  <div class="inner">
+    <h2>Learning that fits the learner</h2>
+    <div class="grid g2">
+      <div class="card">
+        <div class="kicker">Joseph, apprentice electrician · evening, on his phone</div>
+        <div class="chat" id="chat"></div>
+        <div class="row" style="margin-top:.6rem" id="chatBtns">
+          <button data-c="simple">Explain it simpler</button>
+          <button data-c="fr">In French, please</button>
+          <button data-c="trade">An example from my work</button>
+          <button data-c="quiz">Give me a practice question</button>
+        </div>
+        <p class="small" style="margin:.5rem 0 0">Scripted demo – no AI is called.</p>
+      </div>
+      <div>
+        <div class="card f" data-f="1"><b>Open Educational Resources (OER):</b> free learning materials anyone may reuse and adapt (UNESCO Recommendation, 2019). AI makes adapting them to a local language or trade much faster.</div>
+        <div class="card f" data-f="2" style="margin-top:1rem"><b>From my work:</b> an open-source <b>Teaching Agent</b> turns a teacher's course plan into interactive online material (<a href="https://liascript.github.io" target="_blank" rel="noopener">LiaScript</a>). The teacher stays the author. <a href="behind-the-scenes.html">This keynote was drafted with it →</a></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Imagine Joseph, an apprentice electrician. During the day he works; in the evening he learns on his phone. An AI tutor can explain a topic again – in simpler words, in another language, with an example from his trade – and give him practice questions with instant feedback. [Click] Open Educational Resources are free, openly licensed materials; with AI, adapting them to a local language or trade becomes much faster. [Click] An example from my own work: an open-source Teaching Agent helps teachers turn their course plan into interactive online material. It drafts, checks and suggests – the teacher stays the author. In fact, this keynote was drafted with it.</aside>
+</section>
+
+<section class="slide" data-title="Co-pilot, not autopilot">
+  <div class="inner">
+    <h2>AI is a co-pilot – not an autopilot</h2>
+    <div class="grid g2">
+      <div class="card">
+        <div class="kicker">Spot the error · the AI tutor says:</div>
+        <p style="font-size:1.1rem">“Ohm's law says <b>voltage = resistance ÷ current</b> (U = R / I). So a 46 Ω heater on 230 V draws 5 A.” ✅ <i>I'm confident this is correct.</i></p>
+        <div class="grid" style="gap:.5rem" id="spot">
+          <button data-s="0">Everything is correct</button>
+          <button data-s="1">The formula is wrong</button>
+          <button data-s="2">The result (5 A) is wrong</button>
+        </div>
+        <p id="spotFb" style="margin:.6rem 0 0"></p>
+      </div>
+      <div class="f" data-f="1">
+        <div class="table-wrap"><table>
+          <tr><th>Teachers keep</th><th>Learners need</th></tr>
+          <tr><td>setting goals</td><td>critical thinking: “Is this correct? How do I check?”</td></tr>
+          <tr><td>judging quality</td><td>problem solving</td></tr>
+          <tr><td>relationship, motivation</td><td>communication and teamwork</td></tr>
+          <tr><td>fair assessment</td><td>responsibility</td></tr>
+        </table></div>
+        <p class="small" style="margin-top:.6rem"><b>Risks:</b> confident wrong answers · copying instead of learning · unequal access · privacy of young learners</p>
+        <blockquote class="f" data-f="2" style="font-size:1.3rem">If teachers are not confident with AI, learners will not be either.</blockquote>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Imagine Sara, a teacher at a vocational school. AI can save her time – but it cannot do her job. Let us test ourselves: the tutor gives an answer and sounds very sure. What is wrong? [Let audience answer] The formula is wrong, but the number happens to be right – exactly the kind of mistake a learner will not notice unless they know the subject. [Click] Sara keeps what matters: goals, judging quality, motivation, fair assessment. Her learners need critical thinking above all. Let us name the risks honestly – none is a reason to stop, they are reasons to teach carefully. [Click] That is why I would start with teachers.</aside>
+</section>
+
+<!-- ============ CONCLUSION ============ -->
+<section class="slide" data-title="Where should GIZ invest?">
+  <div class="inner">
+    <div class="kicker">Conclusion · ~2 min</div>
+    <h2>Where should GIZ invest?</h2>
+    <div class="grid g2">
+      <div class="card f" data-f="1"><b>📱 Low-barrier, mobile-first</b><br><small>simple phones, messaging, SMS, voice, local languages</small></div>
+      <div class="card f" data-f="1"><b>👩‍🏫 People before platforms</b><br><small>teachers, trainers, analysts, employment services</small></div>
+      <div class="card f" data-f="2"><b>🏛️ Local ownership</b><br><small>partners own their data; open source, open formats, local servers where it matters</small></div>
+      <div class="card f" data-f="2"><b>🧰 Include the informal sector</b><br><small>in data and in training</small></div>
+      <div class="card f" data-f="3"><b>🌱 Start small, learn fast</b><br><small>pilots, then scale what works</small></div>
+      <div class="card f" data-f="3"><b>🛡️ Teach control</b><br><small>permissions, checking, human approval – the AI only writes, people decide</small></div>
+    </div>
+  </div>
+  <aside class="notes">Let us bring it together. [Click] Solutions that work on a simple phone, with weak internet, by voice and in local languages – and skilled people before new platforms. [Click] Partners who own their data and use open tools – with the plumber in Nairobi included. [Click] Small pilots on clear problems, then scale what works. And teach control: the AI only writes; people and the rules they set decide what happens.</aside>
+</section>
+
+<section class="slide" data-title="Three take-aways">
+  <div class="inner">
+    <h2>Three take-aways</h2>
+    <div class="grid g3">
+      <div class="card f" data-f="1"><div style="font-size:2.4rem;font-weight:800;color:var(--accent)">1</div><b>Apply, don't build</b><p class="muted">AI is a tool for real problems – like getting Amina into the right job.</p></div>
+      <div class="card f" data-f="2"><div style="font-size:2.4rem;font-weight:800;color:var(--accent)">2</div><b>People first</b><p class="muted">Technicians like Grace and teachers like Sara who can work with AI – and question it.</p></div>
+      <div class="card f" data-f="3"><div style="font-size:2.4rem;font-weight:800;color:var(--accent)">3</div><b>Data with care</b><p class="muted">Local ownership, privacy, and the informal sector in the picture.</p></div>
+    </div>
+  </div>
+  <aside class="notes">If you remember only three things, let them be these. [Click] Apply, don't build. [Click] People first. [Click] Data with care – our partners own their data, privacy is protected, and the plumber in Nairobi is in the picture too.</aside>
+</section>
+
+<section class="slide" data-title="Your turn">
+  <div class="inner">
+    <div class="kicker">Your turn · type the number in the chat</div>
+    <h2>Where will you start?</h2>
+    <div class="grid g2">
+      <div class="poll" data-poll="p2">
+        <button><span class="n">1</span>Better labour market data</button>
+        <button><span class="n">2</span>Updating TVET curricula</button>
+        <button><span class="n">3</span>Training teachers</button>
+        <button><span class="n">4</span>Reaching the informal sector</button>
+      </div>
+      <div class="card f" data-f="1"><b>Call to action:</b> bring one real problem from your project to today's discussions. <b>Name the person it is about</b> – and one small pilot you could start.</div>
+    </div>
+  </div>
+  <aside class="notes">One last poll: where would you start in your own project? There is no wrong answer – pick the one your partners already care about. [Click] Bring one real problem into the discussions – and name the person it is about: a job-seeker, a technician, a teacher, a learner. Then ask together what small pilot you could start next.</aside>
+</section>
+
+<section class="slide section" data-title="Closing">
+  <div class="inner">
+    <blockquote style="font-size:clamp(1.6rem,3.6vw,2.6rem);max-width:28ch">AI will not replace good TVET – but TVET that uses AI well will shape who benefits from it.</blockquote>
+    <p class="lead">Thank you!</p>
+    <p class="muted">Hannes Tegelbeckers · Otto von Guericke University Magdeburg</p>
+  </div>
+  <aside class="notes">AI will not replace good TVET – but TVET that uses AI well will shape who benefits from it. Thank you for your attention, and I look forward to our discussions.</aside>
+</section>
+
+<section class="slide" data-title="Play with it">
+  <div class="inner">
+    <h2>Play with it – after the talk</h2>
+    <div class="grid g3 links">
+      <a class="card" href="https://job-futuromat.iab.de" target="_blank" rel="noopener"><b>Job-Futuromat ↗</b><br><small>IAB: which tasks of your occupation can be automated? (German)</small></a>
+      <a class="card" href="https://willrobotstakemyjob.com" target="_blank" rel="noopener"><b>Will Robots Take My Job? ↗</b><br><small>Automation risk estimates for US occupations</small></a>
+      <a class="card" href="https://teachablemachine.withgoogle.com" target="_blank" rel="noopener"><b>Teachable Machine ↗</b><br><small>Train your own small AI with your webcam – “learning from examples” in 2 minutes</small></a>
+      <a class="card" href="https://quickdraw.withgoogle.com" target="_blank" rel="noopener"><b>Quick, Draw! ↗</b><br><small>Doodle and watch an AI guess – and fail</small></a>
+      <a class="card" href="https://esco.ec.europa.eu" target="_blank" rel="noopener"><b>ESCO ↗</b><br><small>The EU's shared list of skills and occupations</small></a>
+      <a class="card" href="https://www.cedefop.europa.eu/en/tools/skills-online-vacancies" target="_blank" rel="noopener"><b>Cedefop Skills-OVATE ↗</b><br><small>Skills demand from millions of online job ads</small></a>
+      <a class="card" href="https://lmstudio.ai" target="_blank" rel="noopener"><b>LM Studio ↗</b><br><small>Run an open AI model offline on your own laptop</small></a>
+      <a class="card" href="https://ollama.com" target="_blank" rel="noopener"><b>Ollama ↗</b><br><small>Open models on your own server – the “offline AI” of this talk</small></a>
+      <a class="card" href="behind-the-scenes.html"><b>Behind the scenes →</b><br><small>This keynote built three ways: offline, cloud, combined – with tokens and cost</small></a>
+    </div>
+    <p class="small" style="margin-top:1rem">Also as LiaScript course (with narration and in-browser polls): <a id="liaLink" target="_blank" rel="noopener" href="liascript.html">open in LiaScript ↗</a> · Source: <a href="https://github.com/OVGU-VET-TechEd/GIZ_impulse_lecture" target="_blank" rel="noopener">GitHub ↗</a></p>
+  </div>
+  <aside class="notes">All links for after the talk. The deck stays online.</aside>
+</section>
+
+</main>
+
+<div id="notesPanel" aria-live="polite"><div class="lbl">Speaker notes</div><div id="notesText"></div></div>
+<nav class="bar" aria-label="Slide navigation">
+  <button id="prev" aria-label="Previous">←</button>
+  <span class="count" id="count"></span>
+  <button id="next" aria-label="Next">→</button>
+  <span class="title" id="stitle"></span>
+  <button id="notesBtn" aria-pressed="false" title="Speaker notes (N)">Notes</button>
+  <button id="fragBtn" aria-pressed="false" class="hide-s" title="Show all builds at once">All builds</button>
+  <button id="themeBtn" title="Toggle theme" aria-label="Toggle theme">◐</button>
+  <button id="fsBtn" class="hide-s" title="Full screen (F)">⛶</button>
+</nav>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+  /* ---------- theme ---------- */
+  const savedTheme = store.get('giz-theme'); if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+  $('#themeBtn').onclick = () => {
+    const dark = getComputedStyle(document.documentElement).colorScheme.includes('dark');
+    const t = dark ? 'light' : 'dark'; document.documentElement.dataset.theme = t; store.set('giz-theme', t);
+  };
+
+  /* ---------- deck engine ---------- */
+  const slides = $$('.slide');
+  let cur = 0, step = 0;
+  const maxStep = s => Math.max(0, ...$$('.f', s).map(e => +e.dataset.f || 0));
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === cur));
+    const s = slides[cur];
+    $$('.f', s).forEach(e => e.classList.toggle('on', (+e.dataset.f || 0) <= step));
+    $('#count').textContent = `${cur + 1} / ${slides.length}`;
+    $('#stitle').textContent = s.dataset.title || '';
+    $('#progress').style.width = `${(cur / (slides.length - 1)) * 100}%`;
+    const n = $('.notes', s); $('#notesText').textContent = n ? n.textContent.trim() : '';
+    history.replaceState(null, '', `#${cur + 1}`);
+  }
+  function go(i, atEnd) { cur = Math.max(0, Math.min(slides.length - 1, i)); step = atEnd ? maxStep(slides[cur]) : 0; slides[cur].scrollTop = 0; render(); }
+  function next() { if (!document.body.classList.contains('no-frag') && step < maxStep(slides[cur])) { step++; render(); } else if (cur < slides.length - 1) go(cur + 1); }
+  function prev() { if (!document.body.classList.contains('no-frag') && step > 0) { step--; render(); } else if (cur > 0) go(cur - 1, true); }
+  $('#next').onclick = next; $('#prev').onclick = prev;
+  const toggleNotes = () => { const p = $('#notesPanel'); p.classList.toggle('open'); $('#notesBtn').setAttribute('aria-pressed', p.classList.contains('open')); };
+  $('#notesBtn').onclick = toggleNotes;
+  $('#fragBtn').onclick = () => { document.body.classList.toggle('no-frag'); $('#fragBtn').setAttribute('aria-pressed', document.body.classList.contains('no-frag')); };
+  const fs = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+  $('#fsBtn').onclick = fs;
+  document.addEventListener('keydown', e => {
+    if (e.target.closest('textarea, input') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') go(0); else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key === 'n' || e.key === 'N') toggleNotes();
+    else if (e.key === 'f' || e.key === 'F') fs();
+  });
+  let tx = null;
+  $('#deck').addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  $('#deck').addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 70 && !e.target.closest('textarea, .chat')) (dx < 0 ? next : prev)(); tx = null; });
+  if (window.matchMedia('(max-width: 600px)').matches) document.body.classList.add('no-frag');
+  go((parseInt(location.hash.slice(1)) || 1) - 1);
+
+  /* ---------- polls ---------- */
+  $$('.poll').forEach(p => $$('button', p).forEach(b => b.onclick = () => { $$('button', p).forEach(x => x.setAttribute('aria-pressed', x === b)); }));
+
+  /* ---------- tabs helper ---------- */
+  function tabs(sel, fn) { const bs = $$(`${sel} button`); bs.forEach(b => b.onclick = () => { bs.forEach(x => x.setAttribute('aria-pressed', x === b)); fn(b.dataset.k); }); fn(bs[0].dataset.k); }
+
+  /* ---------- click / code / prompt ---------- */
+  const ccp = {
+    click: `<ol style="margin:0;padding-left:1.2rem"><li>Open the attendance spreadsheet</li><li>Select the table → Data → Filter</li><li>Filter “Month” = October</li><li>Insert → Pivot table, rows = name, values = count of absences</li><li>Sort descending, filter &gt; 3</li></ol><p class="small" style="margin:.5rem 0 0">You need to know <b>where</b> everything is.</p>`,
+    code: `<pre>df = pd.read_excel("attendance.xlsx")
+october = df[df.date.dt.month == 10]
+n = october[october.absent].groupby("name").size()
+print(n[n &gt; 3])</pre><p class="small" style="margin:.5rem 0 0">Precise and repeatable – but you need to learn a <b>programming language</b>.</p>`,
+    prompt: `<p style="font-size:1.15rem;font-family:var(--serif)">“Here is our attendance list. Which apprentices missed more than three days in October? Make a short table I can send to the training company.”</p><p class="small" style="margin:0">Your <b>own words</b> – any language. Behind the scenes, the AI may write the code above for you.</p>`
+  };
+  tabs('#ccpTabs', k => { $('#ccpBox').innerHTML = ccp[k]; });
+
+  /* ---------- offline / online ---------- */
+  const oo = {
+    off: { path: 'M160 75 L250 75', border: 420, lbl: 'your institution / your country – data stays inside', local: true,
+      facts: [['Data', 'stays in the building'], ['Cost', 'hardware once, no fees per use'], ['Speed & quality', 'slower, good for first drafts']] },
+    on: { path: 'M160 75 C 300 140, 450 140, 590 75', border: 170, lbl: 'your laptop – data leaves', local: false,
+      facts: [['Data', 'travels to a provider abroad'], ['Cost', 'pay per use (tokens)'], ['Speed & quality', 'fast, strongest models']] }
+  };
+  tabs('#ooTabs', k => {
+    const c = oo[k];
+    $('#ooPath').setAttribute('d', c.path);
+    $('#ooBorder').setAttribute('width', c.border); $('#ooBorderLbl').setAttribute('x', c.border / 2); $('#ooBorderLbl').textContent = c.lbl;
+    $('#ooLocal').setAttribute('stroke', c.local ? 'var(--accent)' : 'var(--line)'); $('#ooLocal').setAttribute('fill', c.local ? 'var(--accent-soft)' : 'var(--surface-2)');
+    $('#ooCloud').setAttribute('stroke', c.local ? 'var(--line)' : 'var(--warm)'); $('#ooCloud').setAttribute('fill', c.local ? 'var(--surface-2)' : 'var(--warm-soft)');
+    $('#ooFacts').innerHTML = c.facts.map(([a, b]) => `<div><small>${a}</small><br><b>${b}</b></div>`).join('');
+  });
+
+  /* ---------- agent loop ---------- */
+  const loopSteps = [
+    { n: [0], who: 'Human → agent', t: 'Task: <i>“Build a 12–15 minute keynote on AI in TVET. Use only the fact sheet. Write the result to <code>materials/…/README.md</code>. No git, no images.”</i>' },
+    { n: [1], who: 'Language model writes', t: '<code>read_file inputs/rahmen.md</code> <span class="muted">– just text. Nothing has happened yet.</span>' },
+    { n: [2, 3], who: 'Agent program', t: 'Is reading inside the project folder allowed? <b class="good">Yes</b> → the computer reads the file, the text goes back to the model.' },
+    { n: [1], who: 'Language model writes', t: '<code>write_file materials/01-giz-keynote/README.md</code> + 300 lines of slides <span class="muted">(step 7 of 23, after 11 minutes)</span>' },
+    { n: [2, 3], who: 'Agent program', t: 'Writing into <code>materials/</code> is allowed → <b class="good">file saved</b>.' },
+    { n: [1], who: 'Language model writes (illustrative)', t: '<code>delete inputs/</code> <span class="muted">– “clean up old files”</span>', ask: true },
+  ];
+  let li = 0;
+  function loopRender() {
+    const s = loopSteps[li - 1];
+    $$('#loop .node').forEach(n => { n.classList.toggle('hot', !!s && s.n.includes(+n.dataset.n)); n.classList.remove('stop'); });
+    if (!s) { $('#loopLog').innerHTML = '<span class="muted">Press “Next step” to see how an AI agent works – one message at a time.</span>'; $('#loopNext').disabled = false; return; }
+    $('#loopLog').innerHTML = `<div class="who">Step ${li} · ${s.who}</div><p>${s.t}</p>` + (s.ask ? `<p><b>Agent program:</b> deleting is not in the permissions. <b>Ask the human?</b></p><div class="row"><button id="lAllow">Allow</button><button id="lDeny" class="primary">Deny</button></div>` : '');
+    $('#loopNext').disabled = li >= loopSteps.length;
+    if (s.ask) {
+      $('#lAllow').onclick = () => { $('#loopLog').insertAdjacentHTML('beforeend', '<p class="bad" style="margin:.5rem 0 0">⚠️ Allowed – the input files are gone. The model “meant well”; the <b>permission</b> was the human’s decision.</p>'); $('[data-n="3"]').classList.add('hot'); $('#lAllow').disabled = $('#lDeny').disabled = true; };
+      $('#lDeny').onclick = () => { $('#loopLog').insertAdjacentHTML('beforeend', '<p class="good" style="margin:.5rem 0 0">🛡️ Blocked. The model gets the answer “not allowed” as text and continues another way. Nothing on the computer changed.</p>'); $('[data-n="3"]').classList.add('stop'); $('#lAllow').disabled = $('#lDeny').disabled = true; };
+    }
+  }
+  $('#loopNext').onclick = () => { if (li < loopSteps.length) { li++; loopRender(); } };
+  $('#loopReset').onclick = () => { li = 0; loopRender(); };
+  loopRender();
+
+  /* ---------- skill finder ---------- */
+  const skills = [
+    [/install\w*/gi, 'install electrical systems', 't'], [/\bPV\b|solar/gi, 'install solar energy systems', 't'],
+    [/maintain\w*|maintenance/gi, 'maintain equipment', 't'], [/troubleshoot\w*|fault\w*|repair\w*/gi, 'troubleshooting', 't'],
+    [/pipe\w*|plumb\w*/gi, 'install plumbing', 't'], [/sensor\w*/gi, 'calibrate sensors', 't'], [/weld\w*/gi, 'welding', 't'],
+    [/smartphone|app\b|tablet/gi, 'use digital devices', 'd'], [/excel|spreadsheet\w*|computer\w*/gi, 'use office software', 'd'],
+    [/customer\w*|client\w*/gi, 'customer service', 'x'], [/explain\w*|communicat\w*/gi, 'communication', 'x'], [/team\w*/gi, 'teamwork', 'x'],
+    [/safety|safe\b/gi, 'health & safety', 'x'], [/driving licen[cs]e|driver/gi, 'drive vehicles', 'x'],
+    [/English|French|Swahili|Kiswahili|Arabic|Portuguese|Amharic/gi, 'languages', 'x']
+  ];
+  const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  $('#adBtn').onclick = () => {
+    const txt = $('#adText').value; let html = esc(txt); const found = new Map();
+    skills.forEach(([re, label, g]) => { if (txt.match(re)) { found.set(label, g); html = html.replace(re, m => `<mark>${m}</mark>`); } });
+    const groups = { t: 'Technical', d: 'Digital', x: 'Transversal' };
+    const chips = Object.entries(groups).map(([g, name]) => { const l = [...found].filter(([, gg]) => gg === g).map(([k]) => `<span class="pill${g === 'x' ? ' warm' : ''}">${k}</span>`).join(''); return l ? `<div><small>${name}</small><br>${l}</div>` : ''; }).join('');
+    $('#adOut').innerHTML = `<p style="margin:.3rem 0">${html}</p><div class="grid g3">${chips || '<span class="muted">No skills found in the demo list.</span>'}</div>`;
+  };
+
+  /* ---------- informal dots ---------- */
+  let share = 61;
+  function dots() {
+    $('#dots').innerHTML = Array.from({ length: 100 }, (_, i) => `<div class="dot${i >= 100 - share ? ' inf' : ''}"></div>`).join('');
+    const ads = $('#dots').classList.contains('adsview');
+    $('#dotCap').textContent = ads ? `Online job ads only “see” the ${100 - share} formal workers – and not even all of them.` : `Of 100 workers, about ${share} work informally.`;
+  }
+  tabs('#dotTabs', k => { share = +k; dots(); });
+  $('#dotAds').onclick = () => { const on = $('#dots').classList.toggle('adsview'); $('#dotAds').setAttribute('aria-pressed', on); dots(); };
+
+  /* ---------- leak simulation ---------- */
+  const H = Array.from({ length: 25 }, (_, i) => i);
+  const base = h => 40 + 25 * Math.sin((h - 9) / 24 * 2 * Math.PI) + (h >= 6 && h <= 21 ? 10 : -8);
+  const cases = [
+    { title: 'Case 1 · District B, night flow', flow: H.map(h => base(h) + (h >= 1 && h <= 5 ? 28 : 0) + (h > 5 ? 22 : 0)), ai: '🤖 “Leak likely in pipe B-14 (87 %). Flow at 3 a.m. is far above normal.”', clue: 'Extra info: a resident reported a wet street near B-14 this morning.', truth: 'leak',
+      fb: { leak: '✅ Right. Night flow stays high when nobody uses water – a classic leak sign, and the resident confirms it.', sensor: '🟡 Careful, but the resident report already confirms it. Time matters with leaks.', normal: '❌ Night flow should be lowest – this is water being lost.' } },
+    { title: 'Case 2 · District D, sudden jump', flow: H.map(h => h >= 13 && h <= 16 ? 0 : h > 16 ? 140 : base(h)), ai: '🤖 “Burst pipe in D-03 (92 %)! Flow jumped to 140.”', clue: 'Extra info: the sensor’s battery warning was on last week. Flow went to exactly 0, then straight to 140.', truth: 'sensor',
+      fb: { sensor: '✅ Right. Exactly zero, then an impossible jump – a failing sensor, not a burst. The AI trusted bad data.', leak: '❌ A costly trip: the crew would find a dry street. The data itself was faulty.', normal: '🟡 Nothing is leaking – but the broken sensor needs fixing, or the next real leak is missed.' } },
+    { title: 'Case 3 · District A, early morning peak', flow: H.map(h => base(h) + (h >= 5 && h <= 7 ? 35 : 0)), ai: '🤖 “Unusual flow in A-07 (64 %). Possible leak.”', clue: 'Extra info: today is market day; water trucks fill up at the A-07 hydrant from 5 to 7 a.m.', truth: 'normal',
+      fb: { normal: '✅ Right. Local knowledge explains the peak – the AI did not know about market day.', leak: '❌ The flow returns to normal at 8 a.m. – no leak, just the water trucks.', sensor: '🟡 The sensor is fine; the peak has a real local cause. Tell the data team about market day so the AI learns.' } }
+  ];
+  let ci = 0, score = 0, answered = 0;
+  function leak() {
+    const c = cases[ci], max = 160, X = h => 30 + h * 14.5, Y = v => 130 - v / max * 115;
+    const d = c.flow.map((v, h) => `${h ? 'L' : 'M'}${X(h).toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
+    $('#leakSvg').innerHTML = `<line x1="30" y1="130" x2="378" y2="130" stroke="var(--line)"/><line x1="30" y1="${Y(80)}" x2="378" y2="${Y(80)}" stroke="var(--line)" stroke-dasharray="3 4"/>
+      ${[0, 6, 12, 18, 24].map(h => `<text x="${X(h)}" y="146" text-anchor="middle" font-size="11">${h}:00</text>`).join('')}
+      <text x="26" y="${Y(80) + 4}" text-anchor="end" font-size="11">80</text><text x="26" y="${Y(0) + 4}" text-anchor="end" font-size="11">0</text>
+      <text x="34" y="12" font-size="11">water flow (m³/h)</text>
+      <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>`;
+    $('#leakTitle').textContent = c.title; $('#leakAi').textContent = c.ai; $('#leakClue').textContent = c.clue;
+    $('#leakFb').style.display = 'none'; $('#leakNext').style.display = 'none';
+    $$('#leakBtns button').forEach(b => { b.disabled = false; b.setAttribute('aria-pressed', 'false'); });
+    $('#leakScore').textContent = answered ? `${score} / ${answered} right` : '';
+  }
+  $$('#leakBtns button').forEach(b => b.onclick = () => {
+    const c = cases[ci]; answered++; if (b.dataset.a === c.truth) score++;
+    $$('#leakBtns button').forEach(x => x.disabled = true); b.setAttribute('aria-pressed', 'true');
+    $('#leakFb').innerHTML = c.fb[b.dataset.a]; $('#leakFb').style.display = 'block';
+    $('#leakScore').textContent = `${score} / ${answered} right`;
+    $('#leakNext').style.display = 'inline-block'; $('#leakNext').textContent = ci < cases.length - 1 ? 'Next case ▶' : 'Play again ↺';
+  });
+  $('#leakNext').onclick = () => { ci = (ci + 1) % cases.length; if (ci === 0) { score = 0; answered = 0; } leak(); };
+  leak();
+
+  /* ---------- task sorter ---------- */
+  const cats = ['– choose –', 'AI can do it', 'AI helps', 'people do it'];
+  const tasks = [
+    ['Watch the sensor dashboard for unusual values', 1, 'Pattern-spotting around the clock is what AI does well.'],
+    ['Predict which pipe is likely to fail next', 2, 'AI ranks the risk; Grace adds what she knows about soil, age, past repairs.'],
+    ['Decide whether an alarm is real', 2, 'AI gives a probability – the decision and responsibility stay with Grace.'],
+    ['Climb into the shaft and repair the pipe', 3, 'Hands-on work in a messy, changing environment.'],
+    ['Write the maintenance report', 2, 'AI drafts from her voice note; Grace checks and signs.'],
+    ['Explain the water cut to worried residents', 3, 'Trust, empathy and local language – people work.']
+  ];
+  const sel = tasks.map(() => 0);
+  function sorter() {
+    $('#sorter').innerHTML = tasks.map(([t, , why], i) => `<div class="task"><div>${t}<div class="why">→ <b>${cats[tasks[i][1]]}</b>: ${why}</div></div><button data-i="${i}" aria-pressed="${sel[i] > 0}">${cats[sel[i]]}</button></div>`).join('');
+    $$('#sorter button').forEach(b => b.onclick = () => { const i = +b.dataset.i; sel[i] = sel[i] % 3 + 1; sorter(); });
+  }
+  sorter();
+  $('#sortReveal').onclick = () => $('#sorter').classList.toggle('reveal');
+
+  /* ---------- tutor chat ---------- */
+  const chat = {
+    start: [['me', 'Why do we need an RCD in a house installation? The book is too complicated.'],
+      ['ai', 'An RCD (residual current device) compares the current going into a circuit with the current coming back. If some current is missing, it may be flowing through a person – so the RCD switches off within a fraction of a second.']],
+    simple: [['me', 'Explain it simpler'], ['ai', 'Think of water in a pipe loop: what goes out must come back. If some is missing, there is a leak. The RCD watches electricity the same way – and if some is “leaking” through a person, it switches off fast.']],
+    fr: [['me', 'In French, please'], ['ai', 'Un disjoncteur différentiel compare le courant qui entre dans le circuit et celui qui en sort. S’il manque du courant, il passe peut-être à travers une personne – alors il coupe le circuit en une fraction de seconde.']],
+    trade: [['me', 'An example from my work'], ['ai', 'You install a socket in a bathroom. A customer later uses a hair dryer with a damaged cable. Current leaks through the wet hand to the ground – the RCD notices the difference and trips before it becomes dangerous.']],
+    quiz: [['me', 'Give me a practice question'], ['ai', 'Practice: an RCD trips every time the washing machine starts. Name two possible causes you would check first. (Type your answer in your notebook – then ask me for feedback!)']]
+  };
+  const add = m => m.forEach(([w, t]) => { $('#chat').insertAdjacentHTML('beforeend', `<div class="msg ${w}">${t}</div>`); });
+  add(chat.start);
+  $$('#chatBtns button').forEach(b => b.onclick = () => { add(chat[b.dataset.c]); $('#chat').scrollTop = $('#chat').scrollHeight; });
+
+  /* ---------- spot the error ---------- */
+  const spotFb = ['❌ Look again at the formula. The AI sounds sure – that is not proof.', '✅ Right: U = R × I, not R ÷ I. The number happens to be right, so the error is easy to miss – exactly why learners need to check.', '❌ 230 V ÷ 46 Ω = 5 A – the number is right. But the formula as written is wrong.'];
+  $$('#spot button').forEach(b => b.onclick = () => { $$('#spot button').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#spotFb').innerHTML = spotFb[+b.dataset.s]; });
+})();
+</script>
+</body>
+</html>

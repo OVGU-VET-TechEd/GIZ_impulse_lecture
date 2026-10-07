@@ -7,7 +7,8 @@ Impulse keynote (12–15 min, virtual) for the GIZ TVET and Labour Market commun
 
 | Format | Link |
 | --- | --- |
-| **Interactive web presentation** (recommended) | **https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/** |
+| **▶ Run the presentation directly** (interactive web) | **https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/presentation.html** |
+| Overview page (all versions, LiaScript examples) | https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/ |
 | Behind the scenes: one keynote built three ways | https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/behind-the-scenes.html |
 | **LiaScript version** (V3 + interlude “A new way to talk to computers”) | **https://ovgu-vet-teched.github.io/GIZ_impulse_lecture/liascript.html** · [direct LiaScript link](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/keynote.md) |
 | LiaScript – V3 as generated (offline draft + cloud polish) | [open in LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/OVGU-VET-TechEd/GIZ_impulse_lecture/main/V3_GX10_Claude_improved/README.md) |
@@ -20,7 +21,7 @@ Any LiaScript file in this repo opens with `https://liascript.github.io/course/?
 
 - `←` `→` / space / presenter clicker: next build or slide · `N`: speaker notes · `F`: full screen
 - “All builds” shows every slide fully (default on phones) · ◐ switches light/dark
-- Deep link to a slide with `#<number>`, e.g. `…/GIZ_impulse_lecture/#9`
+- Deep link to a slide with `#<number>`, e.g. `…/GIZ_impulse_lecture/presentation.html#9`
 
 ## Structure of the talk
 
@@ -37,7 +38,8 @@ All interactive elements run in the browser; no data is sent anywhere and no AI 
 
 | Path | Content |
 | --- | --- |
-| `index.html`, `assets/` | Interactive web presentation (GitHub Pages) |
+| `index.html` | Overview page (GitHub Pages start page) with links to all presentations |
+| `presentation.html`, `assets/` | Interactive web presentation |
 | `keynote.md`, `liascript.html` | Final LiaScript keynote (V3 + interlude, quiz on agent permissions) and the Pages link that opens it in LiaScript |
 | `behind-the-scenes.html` | Comparison of the three production routes: runtime, tokens, cost, pros and cons |
 | `V1_Offline_GX10/README.md` | LiaScript keynote drafted fully offline by the open-source Teaching Agent with a local open model (qwen3.8:27b on a GX10 server) |
@@ -47,4 +49,4 @@ All interactive elements run in the browser; no data is sent anywhere and no AI 
 
 ## Licence
 
-Text and slides: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) · Code (`index.html`, `behind-the-scenes.html`, `assets/`): MIT – unless stated otherwise.
+Text and slides: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) · Code (`*.html`, `assets/`): MIT – unless stated otherwise.
